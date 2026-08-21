@@ -10,7 +10,6 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.List;
-import java.net.URI;
 
 // doit contenir le contrat interface /dto/Response
 @Component // java va cree et instencier l'objet
