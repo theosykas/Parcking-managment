@@ -7,7 +7,6 @@ import fr.theosykas.parking.dto.PoitiersResponse;
 import fr.theosykas.parking.dto.ParkingDto;
 import fr.theosykas.parking.exception.ProviderInterrupted;
 import tools.jackson.databind.ObjectMapper;
-
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -30,7 +29,7 @@ public class PoitiersProvider implements ParkingProvider {
 	}
 
 	@Override
-	public List<ParkingDto> RetrivalParkingData() {
+	public List<ParkingDto> retrieveParkings() {
 		List<ParkingDto> finalParkingList = new ArrayList<>();
 		ObjectMapper mapper = new ObjectMapper();
 
@@ -44,7 +43,20 @@ public class PoitiersProvider implements ParkingProvider {
 				request, HttpResponse.BodyHandlers.ofString());
 			
 			PoitiersResponse dataCity = mapper.readValue(reponse.body(), PoitiersResponse.class);
-
+			if (dataCity.getResults() != null) {
+				for (PoitiersResponse line: dataCity.getResults()) {
+					int isOccupated = line.getTotalSpace() - line.getEmptySpace();
+			
+					ParkingDto parking = new ParkingDto();
+					parking.setNameOfParking(line.getNameOfParking());
+					parking.setEmptySpace(line.getEmptySpace());
+					parking.setTotalSpace(line.getTotalSpace());
+					if (line.getEmptySpace() != null && line.getTotalSpace() != null) {
+						parking.setOccupied(isOccupated);
+					}
+					finalParkingList.add(parking);
+				}
+			}
 		}
 		catch (IOException | InterruptedException e) {
 			throw new ProviderInterrupted("Erreur le serveur Poitier est injoignable");

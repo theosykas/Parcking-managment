@@ -4,5 +4,5 @@ import fr.theosykas.parking.dto.ParkingDto;
 
 // contrat generique pour pouvoir recuperer les data de n'importe quelle parking en appelant RetrivalParkingData()
 public interface ParkingProvider {
-	List<ParkingDto> RetrivalParkingData();
+	List<ParkingDto> retrieveParkings();
 }
