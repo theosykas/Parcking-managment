@@ -1,0 +1,11 @@
+spring:
+  application:
+    name: parking-gateway
+
+server:
+    port: 8080
+
+    parking:
+     provider:
+      potiers:
+         url: "https://data.grandpoitiers.fr/data-fair/api/v1/datasets/mobilites-stationnement-des-parkings-en-temps-reel/lines"
