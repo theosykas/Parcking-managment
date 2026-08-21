@@ -2,38 +2,60 @@ package fr.theosykas.parking.provider;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-
+import java.io.IOException;
+import fr.theosykas.parking.dto.PoitiersResponse;
 import fr.theosykas.parking.dto.ParkingDto;
+import fr.theosykas.parking.exception.ProviderInterrupted;
+import tools.jackson.databind.ObjectMapper;
 
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.ArrayList;
 import java.util.List;
 
 // doit contenir le contrat interface /dto/Response
 @Component // java va cree et instencier l'objet
-public class PoitiersProvider implements ParkingProvider{
-	// value recupere le prov souhaiter de la ville corespondante (/ressources/template/application.yaml)
+// declaration class == signature du contrat implements ParkingProvider check si RetrivalParkingData est la et au bon return
+public class PoitiersProvider implements ParkingProvider {
 	@Value("${parking.provider.potiers.url}")
 	private String providerUrlApi;
 
 	private final HttpClient client;
 
-	// in instencie client une seule fois
+	// on instencie client une seule fois
 	public PoitiersProvider() {
 		this.client = HttpClient.newHttpClient();
 	}
 
 	@Override
 	public List<ParkingDto> RetrivalParkingData() {
-		HttpRequest request = HttpRequest.newBuilder()
+		List<ParkingDto> finalParkingList = new ArrayList<>();
+		ObjectMapper mapper = new ObjectMapper();
+
+		try {
+			HttpRequest request = HttpRequest.newBuilder()
 						.uri(URI.create(providerUrlApi))
 						.GET()
-						.build()
-					);
-	}
+						.build();
+		
+			HttpResponse<String> reponse = client.send(
+				request, HttpResponse.BodyHandlers.ofString());
+			
+			PoitiersResponse dataCity = mapper.readValue(reponse.body(), PoitiersResponse.class);
 
+		}
+		catch (IOException | InterruptedException e) {
+			throw new ProviderInterrupted("Erreur le serveur Poitier est injoignable");
+		}
+		return finalParkingList;
+	}
 }
 
 // La règle stricte de Java : Dans une classe Java, l'espace global (le corps de la classe) ne sert qu'à déclarer des variables (l'état). Toute l'action, la logique, les calculs ou la création d'objets complexes (comme ta requête) doivent obligatoirement se passer à l'intérieur d'une méthode (le comportement).
+
+
+// global handler le try catch l'erreur donc tout s'arrete
+// le throw dit que c'est tel erreur ProviderInteruped Spring va chercher
+// si quelq'un sait reagir et trouve globalHandler qui va donc raise le message erreur correspondant @ExceptionHandler(ProviderInterrupted.class)
