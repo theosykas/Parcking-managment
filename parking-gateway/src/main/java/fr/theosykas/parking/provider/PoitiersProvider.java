@@ -11,6 +11,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,7 +26,9 @@ public class PoitiersProvider implements ParkingProvider {
 
 	// on instencie client une seule fois
 	public PoitiersProvider() {
-		this.client = HttpClient.newHttpClient();
+		this.client = HttpClient.newBuilder()
+			.connectTimeout(Duration.ofSeconds(3))
+			.build();
 	}
 
 	@Override
@@ -36,6 +39,7 @@ public class PoitiersProvider implements ParkingProvider {
 		try {
 			HttpRequest request = HttpRequest.newBuilder()
 						.uri(URI.create(providerUrlApi))
+						.timeout(Duration.ofSeconds(9))
 						.GET()
 						.build();
 		
@@ -45,15 +49,15 @@ public class PoitiersProvider implements ParkingProvider {
 			PoitiersResponse dataCity = mapper.readValue(reponse.body(), PoitiersResponse.class);
 			if (dataCity.getResults() != null) {
 				for (PoitiersResponse line: dataCity.getResults()) {
-					int isOccupated = line.getTotalSpace() - line.getEmptySpace();
-			
+
 					ParkingDto parking = new ParkingDto();
 					parking.setNameOfParking(line.getNameOfParking());
 					parking.setEmptySpace(line.getEmptySpace());
 					parking.setTotalSpace(line.getTotalSpace());
 					if (line.getEmptySpace() != null && line.getTotalSpace() != null) {
-						parking.setOccupied(isOccupated);
+						parking.setOccupied(line.getTotalSpace() - line.getEmptySpace());
 					}
+
 					finalParkingList.add(parking);
 				}
 			}
