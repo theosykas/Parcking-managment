@@ -6,5 +6,3 @@ public class ProviderInterrupted extends RuntimeException{
 		super(msg, cause);
 	}
 }
-
-// Throwable cause == excpetion d'origine on la trace

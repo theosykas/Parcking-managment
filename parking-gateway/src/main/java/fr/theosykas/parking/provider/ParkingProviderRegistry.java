@@ -3,6 +3,7 @@ import java.util.Map;
 import java.util.Set;
 import org.springframework.stereotype.Component;
 import fr.theosykas.parking.exception.CityNotSupportedException;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 
@@ -16,9 +17,9 @@ public class ParkingProviderRegistry {
 		}
 	}
 
-	// public ParkingProvider getNearbyParking(Double lat, Double lin, Double radius) {
-
-	// }
+	public Collection<ParkingProvider> getAllProviders() {
+		return providerByCity.values();
+	}
 
 	public ParkingProvider getProviderCity(String city) {
 		ParkingProvider provider = providerByCity.get(normalize(city));
@@ -29,7 +30,7 @@ public class ParkingProviderRegistry {
 		return provider;
 	}
 
-	public Set<String> getValidCity() {  // print global handler
+	public Set<String> getValidCity() {
 		return providerByCity.keySet();
 	}
 

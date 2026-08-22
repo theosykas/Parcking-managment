@@ -67,9 +67,9 @@ public class PoitiersProvider implements ParkingProvider {
 				for (PoitierParkingLine line: dataCity.getResults()) {
 
 					ParkingDto parking = new ParkingDto();
-					parking.setNameOfParking(line.getNameOfParking());
-					parking.setEmptySpace(line.getEmptySpace());
-					parking.setTotalSpace(line.getTotalSpace());
+					parking.setName(line.getNameOfParking());
+					parking.setAvaiable_space(line.getEmptySpace());
+					parking.setCapacity(line.getTotalSpace());
 					if (line.getGeoPoint() != null) {  // renvoie un "null" au lieu d'une exception et crash on laisse el qeul
 						String[] formatPoint = line.getGeoPoint().split(",");
 						if (formatPoint.length == 2) {

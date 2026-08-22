@@ -1,0 +1,7 @@
+Le but de l’exercice est de : développer une application “serveur” exposant une API REST pour permettre à une application mobile, ou un site Web, d’afficher la liste des parkings à proximité comme illustré sur l’écran ci-dessous :Ici, on utilisera la source de données suivante disponible à Poitiers pour récupérer la liste des parkings et le nombre de places disponibles du parking en temps réel:
+
+https://data.grandpoitiers.fr/data-fair/api/v1/datasets/mobilites-stationnement-des-parkings-en-temps-reel/lines
+
+Consignes :
+L’application doit pouvoir fonctionner dans d’autres villes : l’URL et format des données parking pourront donc être complètement différents, cependant l’API REST exposée pour l’application mobile ne devra pas évoluer.
+L’application à développer dans le cadre de l’exercice comporte uniquement la partie serveur (il n’est pas demandé de développer l’application mobile).

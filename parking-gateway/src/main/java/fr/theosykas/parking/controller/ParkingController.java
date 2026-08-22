@@ -4,10 +4,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import fr.theosykas.parking.service.ParkingService;
 import java.util.List;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import fr.theosykas.parking.dto.ParkingDto;
+import fr.theosykas.parking.dto.request.NearbyRequest;
 
+@Validated
 @RestController
 @RequestMapping("/api/parking")
 public class ParkingController {
@@ -19,15 +24,14 @@ public class ParkingController {
 	}
 
 	@GetMapping
-	public List<ParkingDto> getParking(@RequestParam String city) {
+	public List<ParkingDto> getParking(@RequestParam @NotBlank String city) {
 		return service.getParking(city);
 	}
 	
-	// @GetMapping("/proximity")
-	// public List<ParkingDto> getProximity(
-	// 							@RequestParam Double lat,
-	// 							@RequestParam Double lon,
-	// 							@RequestParam Double radiusMetre) {
-	// 	return service.getNearby(lon, lat, radiusMetre);
-	// }
+	@GetMapping("/proximity")
+	public List<ParkingDto> getProximity(
+								@Valid NearbyRequest requets
+		) {
+		return service.getNearby(requets.getLat(), requets.getLon(), requets.getRadiusMetre());
+	}
 }

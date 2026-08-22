@@ -45,61 +45,61 @@ public class CannesProvider implements ParkingProvider{
 	public List<ParkingDto> retrieveParkings() {
 		List<ParkingDto> finalParkingList = new ArrayList<>();
 
-	try {
-		HttpRequest request = HttpRequest.newBuilder()
-						.uri(URI.create(providerUrlApi))
-						.timeout(Duration.ofSeconds(5))
-						.GET()
-						.build();
+		try {
+			HttpRequest request = HttpRequest.newBuilder()
+							.uri(URI.create(providerUrlApi))
+							.timeout(Duration.ofSeconds(5))
+							.GET()
+							.build();
 	
-		HttpResponse<String> response = client.send(
-			request, HttpResponse.BodyHandlers.ofString());
+			HttpResponse<String> response = client.send(
+				request, HttpResponse.BodyHandlers.ofString());
 
-		if (response.statusCode() != 200) {
-			throw new ProviderInterrupted("Le serveur Cannes repond: " + response.statusCode(), null);
-		}
-		CannesResponse dataCity = mapper.readValue(response.body(), CannesResponse.class);
-		if (dataCity.getResults() != null) {
-				for (CannesParkingLine line: dataCity.getResults()) {
+			if (response.statusCode() != 200) {
+				throw new ProviderInterrupted("Le serveur Cannes repond: " + response.statusCode(), null);
+			}
+			CannesResponse dataCity = mapper.readValue(response.body(), CannesResponse.class);
+			if (dataCity.getResults() != null) {
+					for (CannesParkingLine line: dataCity.getResults()) {
 
-					ParkingDto parking = new ParkingDto();
-					parking.setNameOfParking(line.getNameOfParking());
-					parking.setEmptySpace(line.getEmptySpace());
-					parking.setTotalSpace(line.getTotalSpace());
-					if (line.getGeoPoint() != null) {
-						String[] formatPoint = line.getGeoPoint().split(",");
-							if (formatPoint.length == 2) {
-							try {
-								parking.setLatitude(Double.parseDouble(formatPoint[0].trim()));  // reupere les potions pour les return a la list
-								parking.setLongitude(Double.parseDouble(formatPoint[1].trim()));
-							}
-							catch (NumberFormatException e){
-								log.warn("Coordonnées illisibles pour le parking {} : {}",
-											line.getNameOfParking(), line.getGeoPoint()
-								);
+						ParkingDto parking = new ParkingDto();
+						parking.setName(line.getNameOfParking());
+						parking.setAvaiable_space(line.getEmptySpace());
+						parking.setCapacity(line.getTotalSpace());
+						if (line.getGeoPoint() != null) {
+							String[] formatPoint = line.getGeoPoint().split(",");
+								if (formatPoint.length == 2) {
+								try {
+									parking.setLatitude(Double.parseDouble(formatPoint[0].trim()));  // reupere les potions pour les return a la list
+									parking.setLongitude(Double.parseDouble(formatPoint[1].trim()));
+								}
+								catch (NumberFormatException e){
+									log.warn("Coordonnées illisibles pour le parking {} : {}",
+												line.getNameOfParking(), line.getGeoPoint()
+									);
+								}
 							}
 						}
-					}
-					if (line.getEmptySpace() != null && line.getTotalSpace() != null) {
-						parking.setOccupied(line.getTotalSpace() - line.getEmptySpace());
-					}
+						if (line.getEmptySpace() != null && line.getTotalSpace() != null) {
+							parking.setOccupied(line.getTotalSpace() - line.getEmptySpace());
+						}
 
-					finalParkingList.add(parking);
+						finalParkingList.add(parking);
+					}
 				}
 			}
+			catch (IOException e) {
+				throw new ProviderInterrupted("Erreur le serveur Cannes est injoignable", e);
+			}
+			catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+				throw new ProviderInterrupted("Erreur le serveur Cannes est interrompue", e);
+			}
+			catch (JacksonException e) {
+				throw new ProviderInterrupted("Réponse illisible du serveur de Cannes", e);
+			}
+			return finalParkingList;
 		}
-		catch (IOException e) {
-			throw new ProviderInterrupted("Erreur le serveur Cannes est injoignable", e);
-		}
-		catch (InterruptedException e) {
-			Thread.currentThread().interrupt();
-			throw new ProviderInterrupted("Erreur le serveur Cannes est interrompue", e);
-		}
-		catch (JacksonException e) {
-			throw new ProviderInterrupted("Réponse illisible du serveur de Cannes", e);
-		}
-		return finalParkingList;
-	}
 }
 
 
