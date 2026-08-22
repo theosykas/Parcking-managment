@@ -1,9 +1,11 @@
 ## Démarrage rapide
 
 ​```bash
-cd parking-gateway
-make up     # source Cannes simulée (nginx)/8081
-make run-serveur    # API sur le port 8080
+	cd parking-gateway
+	make up     # source Cannes simulée (nginx)/8081
+	
+	
+	make run-serveur    # API sur le port 8080
 ​```
 
 ​```bash
