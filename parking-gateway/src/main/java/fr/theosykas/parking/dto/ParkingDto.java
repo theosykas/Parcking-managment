@@ -7,10 +7,8 @@ public class ParkingDto {
 	private String nameOfParking;
 	private Integer emptySpace;
 	private Integer totalSpace;
-	private Integer Occupied;
+	private Integer occupied;
+	private Double longitude;
+	private Double latitude;
+	private Double distanceMeter;
 }
-
-// ajouter un id pour la version de la api refresh
-// lastUpdated
-// ville
-// logitude et lat en double pour Haversine position

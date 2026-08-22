@@ -1,0 +1,102 @@
+{
+  "total": 12,
+  "next": null,
+  "results": [
+    {
+      "name_parking": "Palais des Festivals",
+      "Places_disponible": 187,
+      "Capacite_max": 620,
+      "_geopoint_coord": "43.5510,7.0177",
+      "tarif_horaire": 2.5,
+      "gestionnaire": "Ville de Cannes"
+    },
+    {
+      "name_parking": "Forville",
+      "Places_disponible": 42,
+      "Capacite_max": 480,
+      "_geopoint_coord": "43.5506,7.0122",
+      "tarif_horaire": 2.1,
+      "gestionnaire": "Ville de Cannes"
+    },
+    {
+      "name_parking": "Gare SNCF",
+      "Places_disponible": 0,
+      "Capacite_max": 315,
+      "_geopoint_coord": "43.5537,7.0198",
+      "tarif_horaire": 2.8,
+      "gestionnaire": "SNCF Stationnement"
+    },
+    {
+      "name_parking": "Pantiero",
+      "Places_disponible": 96,
+      "Capacite_max": 250,
+      "_geopoint_coord": "43.5497,7.0154",
+      "tarif_horaire": 3.0,
+      "gestionnaire": "Ville de Cannes"
+    },
+    {
+      "name_parking": "Vauban",
+      "Places_disponible": 233,
+      "Capacite_max": 540,
+      "_geopoint_coord": "43.5527,7.0230",
+      "tarif_horaire": 1.9,
+      "gestionnaire": "Ville de Cannes"
+    },
+    {
+      "name_parking": "Hotel de Ville",
+      "Places_disponible": 61,
+      "Capacite_max": 190,
+      "_geopoint_coord": "43.5507,7.0146",
+      "tarif_horaire": 2.4,
+      "gestionnaire": "Ville de Cannes"
+    },
+    {
+      "name_parking": "Casino Croisette",
+      "Places_disponible": 118,
+      "Capacite_max": 410,
+      "_geopoint_coord": "43.5501,7.0206",
+      "tarif_horaire": 3.5,
+      "gestionnaire": "Groupe Barriere"
+    },
+    {
+      "name_parking": "Ferrage",
+      "Places_disponible": 27,
+      "Capacite_max": 360,
+      "_geopoint_coord": "43.5525,7.0165",
+      "tarif_horaire": 2.0,
+      "gestionnaire": "Ville de Cannes"
+    },
+    {
+      "name_parking": "Laubeuf - Port Canto",
+      "Places_disponible": 305,
+      "Capacite_max": 720,
+      "_geopoint_coord": "43.5460,7.0290",
+      "tarif_horaire": 2.2,
+      "gestionnaire": "Ville de Cannes"
+    },
+    {
+      "name_parking": "Suquet Anciens Combattants",
+      "Places_disponible": 14,
+      "Capacite_max": 145,
+      "_geopoint_coord": "coordonnees indisponibles",
+      "tarif_horaire": 1.8,
+      "gestionnaire": "Ville de Cannes"
+    },
+    {
+      "name_parking": "Marche Gambetta",
+      "Places_disponible": 73,
+      "Capacite_max": 210,
+      "_geopoint_coord": null,
+      "tarif_horaire": 1.7,
+      "gestionnaire": "Ville de Cannes"
+    },
+    {
+      "name_parking": "Croisette Grand Hotel",
+      "Places_disponible": null,
+      "Capacite_max": 280,
+      "_geopoint_coord": "43.5480,7.0250",
+      "tarif_horaire": 4.0,
+      "gestionnaire": "Prive"
+    }
+  ]
+}

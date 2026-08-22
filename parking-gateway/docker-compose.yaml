@@ -1,0 +1,14 @@
+
+# je recupere pull juste l'image nginx donc je la up pour y mettre mes data cannes
+services:
+  cannes-api:
+    image: nginx:alpine
+    container_name: cannes-open-data
+    ports:
+      - "8081:80"
+    volumes:
+      - ./data_city_api/Cannes_data.json:/data/Cannes_data.json:ro
+      - ./data_city_api/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    restart: unless-stopped
+
+    #  curl -i http://localhost:8081/mobilites-stationnement-des-parkings-en-temps-reel/lines
