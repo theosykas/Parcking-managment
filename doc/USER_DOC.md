@@ -27,7 +27,7 @@ Deux services à démarrer, depuis le dossier `parking-gateway/`.
 
 ```bash
 cd parking-gateway
-docker compose up -d
+make up
 ```
 
 Un conteneur nginx expose des données de stationnement de Cannes sur le port **8081**,
@@ -44,7 +44,7 @@ Réponse attendue : `HTTP/1.1 200 OK` et un JSON contenant `"total": 12`.
 ### 2. L'API
 
 ```bash
-./mvnw spring-boot:run
+make run-server
 ```
 
 L'application démarre sur le port **8080**. Attendre la ligne :

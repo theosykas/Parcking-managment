@@ -1,11 +1,9 @@
- premier jour : 16h51 -> 21h44
-
 ## Démarrage rapide
 
 ​```bash
 cd parking-gateway
-docker compose up -d      # source Cannes simulée (nginx)
-./mvnw spring-boot:run    # API sur le port 8080
+make up     # source Cannes simulée (nginx)/8081
+make run-serveur    # API sur le port 8080
 ​```
 
 ​```bash
