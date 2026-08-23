@@ -7,9 +7,11 @@ import fr.theosykas.parking.provider.ParkingProviderRegistry;
 import fr.theosykas.parking.utils.CoordUtils;
 import lombok.RequiredArgsConstructor;
 
+// Recuperer les providers des villes correspondante et recuperer les parking avec retrieveParkings()
 @Service
 @RequiredArgsConstructor
 public class ParkingService {
+
 	private final ParkingProviderRegistry registry;
 
 	public List<ParkingDto> getParking(String city) {
