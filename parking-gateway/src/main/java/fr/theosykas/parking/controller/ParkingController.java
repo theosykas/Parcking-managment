@@ -9,25 +9,25 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import lombok.RequiredArgsConstructor;
 import fr.theosykas.parking.dto.ParkingDto;
 import fr.theosykas.parking.dto.request.NearbyRequest;
 
 @Validated
 @RestController
 @RequestMapping("/api/parking")
+@RequiredArgsConstructor
 public class ParkingController {
 
+	// injection of object with RequiredArgsConstructor
 	private final ParkingService service;
-
-	public ParkingController(ParkingService service) {
-		this.service = service;
-	}
 
 	@GetMapping
 	public List<ParkingDto> getParking(@RequestParam @NotBlank String city) {
 		return service.getParking(city);
 	}
 	
+	// (GET methode) parking a proximite (param: lon, lat, raius)
 	@GetMapping("/proximity")
 	public List<ParkingDto> getProximity(
 								@Valid NearbyRequest requets
