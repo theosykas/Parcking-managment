@@ -3,7 +3,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
-// permet de lire les valeur du json pour les ecrire dans le ParkingDto
+// La source publie plus de champs que ceux qui m'interessent : je n'en declare
+// que 4. Un champ ajoute par la ville ne cassera pas la deserialisation.
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class PoitierParkingLine {
