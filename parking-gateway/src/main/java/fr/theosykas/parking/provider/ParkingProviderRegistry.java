@@ -6,7 +6,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 
-//Spring injecte ici toutes les implementations de ParkingProvider //
+// Spring injecte ici toutes les implementations de ParkingProvider
 // Ajouter une ville = creer une classe @Component, aucun enregistrement manuel.
 @Component
 public class ParkingProviderRegistry {

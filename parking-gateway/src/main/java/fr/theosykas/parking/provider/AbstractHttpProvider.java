@@ -62,7 +62,7 @@ public abstract class AbstractHttpProvider<R> implements ParkingProvider{
 
 	// récupère le JSON en texte (la ligne est cachée dans l'appel imbriqué) == readValue(fetchBodyResponse(), responseType());
 	private String fetchBodyResponse() {
-		HttpRequest requets = HttpRequest.newBuilder()
+		HttpRequest request = HttpRequest.newBuilder()
 							.uri(URI.create(providerUrlApi))
 							.timeout(TIME_OUT_REQUEST)
 							.GET()
@@ -70,7 +70,7 @@ public abstract class AbstractHttpProvider<R> implements ParkingProvider{
 	
 		try {
 			HttpResponse<String> response = client.send(
-				requets, HttpResponse.BodyHandlers.ofString());
+				request, HttpResponse.BodyHandlers.ofString());
 			if (response.statusCode() != 200) {
 				// serveur provider url invalid
 				throw new ProviderUnavailableException("Le serveur repond: " + response.statusCode(), null);

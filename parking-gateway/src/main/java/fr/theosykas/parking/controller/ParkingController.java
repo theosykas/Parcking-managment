@@ -28,8 +28,8 @@ public class ParkingController {
 
 	@GetMapping("/proximity")
 	public List<ParkingDto> getProximity(
-								@Valid NearbyRequest requets
+								@Valid NearbyRequest request
 		) {
-		return service.getNearby(requets.getLat(), requets.getLon(), requets.getRadiusMetre());
+		return service.getNearby(request.getLat(), request.getLon(), request.getRadiusMetre());
 	}
 }

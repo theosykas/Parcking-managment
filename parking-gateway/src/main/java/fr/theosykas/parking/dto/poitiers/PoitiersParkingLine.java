@@ -9,10 +9,10 @@ import lombok.Data;
 // que 4. Un champ ajoute par la ville ne cassera pas la deserialisation.
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class PoitierParkingLine implements ParkingSourceLine{
+public class PoitiersParkingLine implements ParkingSourceLine{
 
 	@JsonProperty("Nom")
-	private String NameOfParking;
+	private String nameOfParking;
 
 	@JsonProperty("Places")
 	private Integer emptySpace;

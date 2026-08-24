@@ -10,7 +10,7 @@ import lombok.Data;
 public class CannesParkingLine implements ParkingSourceLine{
 
 	@JsonProperty("name_parking")
-	private String NameOfParking;
+	private String nameOfParking;
 
 	@JsonProperty("Places_disponible")
 	private Integer emptySpace;
