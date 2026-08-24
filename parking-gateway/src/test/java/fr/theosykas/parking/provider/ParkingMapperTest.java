@@ -11,9 +11,9 @@ import fr.theosykas.parking.dto.ParkingSourceLine;
 public class ParkingMapperTest {
 	private final ParkingMapper mapper = new ParkingMapper();
 
+	// en local sans dependre d'une ville
 	private record LigneSource(String getNameOfParking, Integer getEmptySpace,
-                                 Integer getTotalSpace, String getGeoPoint)
-                      implements ParkingSourceLine {}
+                                 Integer getTotalSpace, String getGeoPoint) implements ParkingSourceLine {}
 	
 	@Test
 	void geoPointEst() {

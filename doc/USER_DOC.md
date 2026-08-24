@@ -44,7 +44,7 @@ Réponse attendue : `HTTP/1.1 200 OK` et un JSON contenant `"total": 12`.
 ### 2. L'API
 
 ```bash
-make run-server
+make run-serveur
 ```
 
 L'application démarre sur le port **8080**. Attendre la ligne :
@@ -58,11 +58,11 @@ Started ParkingGatewayApplication in 1.08 seconds
 ### Raccourcis Makefile
 
 ```bash
-make build          # démarre le conteneur Cannes
+make up          # démarre le conteneur Cannes
 make ps             # état du conteneur
 make logs           # logs nginx en direct (utile pour voir les appels arriver)
-make stop-serveur   # arrête la source Cannes (simulation de panne)
-make clean          # arrête et supprime le conteneur
+make run-serveur    # démarre le serveur
+make down          # arrête et supprime le conteneur
 ```
 
 ---
@@ -118,25 +118,25 @@ Identique quelle que soit la ville interrogée.
 ```json
 [
   {
-    "nameOfParking": "GARE TOUMAI",
-    "emptySpace": 474,
-    "totalSpace": 640,
+    "name": "GARE TOUMAI",
+    "available": 474,
+    "capacity": 640,
     "occupied": 166,
     "latitude": 46.5835835310322,
     "longitude": 0.334834883091724,
-    "distanceMeter": 3
+    "distanceMetre.": 3
   }
 ]
 ```
 
 | Champ | Type | Description |
 |---|---|---|
-| `nameOfParking` | texte | nom du parking |
-| `emptySpace` | entier | places libres en temps réel |
-| `totalSpace` | entier | capacité totale |
-| `occupied` | entier | places occupées (`totalSpace - emptySpace`) |
+| `Name` | texte | nom du parking |
+| `avaiable_space` | entier | places libres en temps réel |
+| `capacity` | entier | capacité totale |
+| `occupied` | entier | places occupées (`capacity - available`) |
 | `latitude` / `longitude` | décimal | position, `null` si la source ne la fournit pas |
-| `distanceMeter` | entier | distance au point demandé, présent uniquement sur `/proximity` |
+| `distance_metre` | entier | distance au point demandé, présent uniquement sur `/proximity` |
 
 ---
 
@@ -146,7 +146,7 @@ Identique quelle que soit la ville interrogée.
 |---|---|---|
 | `200` | succès, y compris si aucun parking ne correspond (liste vide) | tableau JSON |
 | `400` | paramètre absent, hors bornes ou mal formé | `{"error": "..."}` |
-| `404` | ville inconnue | `{"error": "...", "supportedCities": [...]}` |
+| `404` | ville inconnue | `{"error":"city not supported lyon","supported city:":[...]}` |
 | `503` | source de données injoignable, en erreur ou illisible | `{"error": "..."}` |
 | `500` | erreur imprévue | `{"error": "Erreur interne"}` |
 
@@ -170,12 +170,11 @@ trouve dans le rayon demandé.
 Chaque ville est isolée : la panne de l'une n'affecte pas les autres.
 
 ```bash
-make stop-serveur                                       # la source Cannes tombe
 
 curl -i "http://localhost:8080/api/parking?city=cannes"    # 503, source injoignable
 curl -i "http://localhost:8080/api/parking?city=poitiers"  # 200, toujours opérationnel
 
-make build                                              # la source revient
+make up                                              # la source revient
 ```
 
 Deux endpoints de test sont également exposés par le conteneur, pour vérifier le traitement
