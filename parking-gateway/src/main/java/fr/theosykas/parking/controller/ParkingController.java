@@ -19,15 +19,13 @@ import fr.theosykas.parking.dto.request.NearbyRequest;
 @RequiredArgsConstructor
 public class ParkingController {
 
-	// injection of object with RequiredArgsConstructor
 	private final ParkingService service;
 
 	@GetMapping
 	public List<ParkingDto> getParking(@RequestParam @NotBlank String city) {
 		return service.getParking(city);
 	}
-	
-	// (GET methode) parking a proximite (param: lon, lat, raius)
+
 	@GetMapping("/proximity")
 	public List<ParkingDto> getProximity(
 								@Valid NearbyRequest requets

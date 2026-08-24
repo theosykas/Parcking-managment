@@ -7,6 +7,6 @@ import java.util.List;
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class CannesResponse {
-	@JsonProperty
+	@JsonProperty("results")
 	private List<CannesParkingLine> results;
 }

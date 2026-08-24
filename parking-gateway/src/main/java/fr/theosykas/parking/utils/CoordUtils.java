@@ -6,6 +6,7 @@ public class CoordUtils {
 	private CoordUtils() {};
 
 	// Equirectangular Distance Approximation,
+	// erreur < 0,1 % sur quelques km, bien moins coûteux.
 	public static double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
 		Double lat1Rad = Math.toRadians(lat1);
 		Double lat2Rad = Math.toRadians(lat2);

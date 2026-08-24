@@ -6,7 +6,6 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.Data;
 
-// applique des version sur les parametres entres par le user directement
 @Data
 public class NearbyRequest {
 	@NotNull
