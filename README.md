@@ -145,14 +145,12 @@ faire échouer la requête entière : `ParkingService.collectAllParkings()` attr
 sources restantes. Si Cannes tombe, une recherche autour de Poitiers répond toujours `200`.
 
 La recherche par ville, elle, reste stricte : demander explicitement `?city=cannes` alors que
-la source Cannes est morte renvoie `503`. C'est cohérent — le client a nommé une ville
+la source Cannes est morte renvoie `503` (Service Unavailable). C'est cohérent — le client a nommé une ville
 précise, lui renvoyer une liste vide en `200` serait un mensonge.
 
 ---
 
 ## 4. État des tests
-
-La couverture de test a été considérablement renforcée en ciblant en priorité les éléments à fort retour sur investissement : la logique métier pure (sans dépendance) et la résilience face aux erreurs externes.
 
 ### Tests implémentés et actifs
 
@@ -168,17 +166,17 @@ La couverture de test a été considérablement renforcée en ciblant en priorit
 1. **Isolation de la logique métier (`ParkingMapper` / `CoordUtils`) :** Ce sont des tests dits "purs". Ils n'ont besoin d'aucune connexion réseau ni de base de données. Ils s'exécutent en quelques millisecondes et garantissent que le cœur de l'application (le calcul des places et des distances) est infaillible, peu importe ce que renvoient les API.
 2. **Simulation du contrat (Le `record LigneSource`) :** Plutôt que d'instancier un DTO de ville complexe (`PoitiersParkingLine`), le test du mapper utilise un simple `record` implémentant `ParkingSourceLine`. Cela prouve que le mapper dépend uniquement du *contrat* et non de l'implémentation d'une ville spécifique.
 3. **Réparation du test HTTP (`AbstractProviderTest`) :** Le test désactivé a été réparé en ciblant la classe parente. Cela garantit que **toutes** les villes hériteront de cette gestion d'erreur robuste si leur serveur plante.
+4. **Simulation normalisation des clés et exception handle** verifie que`CityNotSupportedException` est bien levée si on demande une ville inconnue, et verification de la normalisation des clés de recherche
 
-### Ce qu'il reste à tester (Prochaines étapes)
+### Ce qu'il reste à tester (couverture tests)
 
 Avec le temps, voici les derniers éléments qui viendraient clôturer la couverture :
 
-*   **`ParkingProviderRegistry`** : Tester la normalisation des clés de recherche et s'assurer que l'exception `CityNotSupportedException` est bien levée si on demande une ville inconnue.
 *   **Les erreurs HTTP spécifiques (`AbstractHttpProvider`)** : Bouchonner (`Mock`) le `HttpClient` pour simuler une erreur `500 Internal Server Error` ou un corps de réponse tronqué (JSON invalide).
 
 ---
 
-## Journal
+## Journal trace de mon temps de developpement et de recherche
 
 Concernant le temps passé sur ce problème : j'ai commencé vendredi 16, suite à mon entretien
 avec Sarah. J'ai reçu le test à 16h et j'ai immédiatement pris connaissance du sujet, noté où
@@ -264,11 +262,6 @@ exclu de `/proximity` — où l'on ne peut évidemment pas calculer une distance
 ## Pistes d'amélioration identifiées
 
 Ces points ne sont pas implémentés, mais ils sont identifiés.
-
-### Couverture de test
-
-C'est la première chose que je reprendrais. Le détail et l'ordre de priorité sont dans la
-section « État des tests » ci-dessus.
 
 ### Fraîcheur de la donnée
 

@@ -23,6 +23,7 @@ public class ParkingMapperTest {
 	}
 
 	@Test
+	// aucun crash app juste une boite vide Optional sur coord 
 	void geoPointConvertTextual() {
 		assertTrue(mapper.parseGeoPoint("coordonnees indisponibles").isEmpty());
 	}
