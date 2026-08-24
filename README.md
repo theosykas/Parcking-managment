@@ -285,14 +285,23 @@ indolore ; avec dix, la latence est la somme des dix appels. `HttpClient.sendAsy
 `CompletableFuture.allOf()` ramèneraient le coût à celui de la source la plus lente. Le pool
 de connexions partagé est déjà en place pour ça.
 
-### Cache court
-
-Les données de stationnement bougent à l'échelle de la minute, pas de la milliseconde. Un
-cache de 30 à 60 secondes par provider absorberait les rafales de requêtes mobiles sans
-dégrader la fraîcheur perçue, et protégerait les API des villes.
-
 ### Pagination des sources
 
 L'API de Poitiers renvoie l'ensemble de ses parkings dans une seule réponse, ce qui convient
 à son volume. Une source plus fournie imposerait de gérer la pagination côté provider, sans
 impact sur le contrat exposé — la logique resterait confinée à `AbstractHttpProvider`.
+
+### Ingestion asynchrone et mise en cache (Architecture de type Batch)
+
+Dans l'implémentation actuelle, l'API interroge les serveurs des villes "à la volée" (de manière synchrone) lors de la requête du client. Bien que le temps de réponse soit encadré par des `timeout` stricts, la latence globale subie par l'utilisateur dépend toujours de la vitesse de réponse du fournisseur externe.
+
+Pour un passage à l'échelle (ex: des milliers d'utilisateurs simultanés sur une application mobile), la prochaine étape architecturale consisterait à découpler complètement la collecte des données de leur restitution :
+
+1. **Worker en arrière-plan (`@Scheduled`) :** Mettre en place un processus métier planifié qui interroge tous les `ParkingProvider` à intervalle régulier (ex: toutes les 2 minutes), de manière asynchrone.
+2. **Stockage (Redis / BDD) :** Sauvegarder l'état consolidé (les `ParkingDto`) dans un datastore ultra-rapide comme **Redis** ou une base de données relationnelle, en y ajoutant systématiquement un champ `lastUpdate`.
+3. **Restitution immédiate :** Le `ParkingController` ne ferait plus aucun appel HTTP vers l'extérieur. Il se contenterait de lire le dernier état connu dans la base de données pour le servir au client.
+
+**Bénéfices d'une telle architecture :**
+*   **Latence nulle :** Le client reçoit ses données quasi-instantanément, quelle que soit la lenteur du serveur de la ville.
+*   **Résilience maximale :** Si l'API de Cannes tombe en panne pendant une heure, l'application mobile affiche toujours les parkings avec les données vieilles d'une heure (accompagnées d'un indicateur visuel de fraîcheur), au lieu d'une liste vide ou d'une erreur.
+*   **Protection des fournisseurs (Rate Limiting) :** Si 10 000 utilisateurs ouvrent l'application simultanément, les serveurs des villes ne reçoivent toujours qu'une seule requête toutes les 2 minutes de notre part. Cela évite le bannissement de notre IP pour abus.
