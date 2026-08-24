@@ -596,9 +596,6 @@ des cas limites, chacun couvrant une branche du code :
 | Croisette Grand Hotel | `Places_disponible: null` | garde `!= null` avant soustraction |
 | tous | `tarif_horaire`, `gestionnaire` | `@JsonIgnoreProperties(ignoreUnknown = true)` |
 
-nginx expose aussi deux routes de panne, `/boom` (500) et `/html` (corps HTML), pour vérifier
-respectivement le contrôle de statut et le `catch (JacksonException)`.
-
 ---
 
 ## Tests

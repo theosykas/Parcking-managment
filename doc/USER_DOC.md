@@ -177,14 +177,6 @@ curl -i "http://localhost:8080/api/parking?city=poitiers"  # 200, toujours opér
 make up                                              # la source revient
 ```
 
-Deux endpoints de test sont également exposés par le conteneur, pour vérifier le traitement
-des réponses anormales :
-
-```bash
-curl -i http://localhost:8081/boom    # renvoie 500 — l'API doit répondre 503
-curl -i http://localhost:8081/html    # renvoie du HTML — l'API doit répondre 503
-```
-
 Pour les utiliser, pointer temporairement `parking.provider.cannes.url` sur ces URL dans
 `application.yaml`.
 
