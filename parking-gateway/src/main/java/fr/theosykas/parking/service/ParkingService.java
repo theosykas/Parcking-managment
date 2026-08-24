@@ -47,6 +47,7 @@ public class ParkingService {
 				parking.addAll(provider.retrieveParkings());
 			}
 			catch (ProviderUnavailableException e) {
+				// si une vile repond pas degrdation partielle mais on boucle toujours
 				log.warn("Provider {} indisponible, ignore pour cette requete", provider.getCity(), e);
 			}
 		}
