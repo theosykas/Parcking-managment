@@ -1,8 +1,9 @@
 package fr.theosykas.parking.utils;
 
 public class CoordUtils {
-	private static final double EARTH_RADIUS_CONS =  6_371_000;
+	private static final double CONS =  6_371_000;
 
+	private CoordUtils() {}
 	// Equirectangular Distance Approximation,
 	// erreur < 0,1 % sur quelques km, bien moins coûteux.
 	public static double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
@@ -13,7 +14,7 @@ public class CoordUtils {
 		
 		Double x = (lon2Rad - lon1Rad) * Math.cos((lat1Rad + lat2Rad) / 2);
 		Double y = lat2Rad - lat1Rad;
-		double distance = Math.sqrt(x * x + y * y) * EARTH_RADIUS_CONS;
+		double distance = Math.sqrt(x * x + y * y) * CONS;
 		return distance;
 	}
 }
