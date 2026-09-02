@@ -6,15 +6,15 @@ import org.junit.jupiter.api.Test;
 public class CoordUtilsTest {
 
 	@Test
-	void calculateNullDistanceDuplicatePoint() {
+	void zeroDistanceForIdenticalPoints() {
 		assertEquals(0.0, CoordUtils.calculateDistance(46.5836, 0.3348, 46.5836, 0.3348), 0.001);
 	}
 
 	@Test
-	void symOfLatAndLon() {
-		double aller = CoordUtils.calculateDistance(46.5836, 0.3348, 43.5510, 7.0177);
-		double retour = CoordUtils.calculateDistance(43.5510, 7.0177, 46.5836, 0.3348);
+	void distanceIsSymmetric() {
+		double outbound = CoordUtils.calculateDistance(46.5836, 0.3348, 43.5510, 7.0177);
+		double inbound = CoordUtils.calculateDistance(43.5510, 7.0177, 46.5836, 0.3348);
 
-		assertEquals(aller, retour, 0.001);
+		assertEquals(outbound, inbound, 0.001);
 	}
 }

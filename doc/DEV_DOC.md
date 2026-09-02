@@ -28,7 +28,7 @@ fr.theosykas.parking
 │   ├── ParkingDto                   format public, stable, renvoyé au client
 │   ├── ParkingSourceLine            interface pivot : vocabulaire commun des lignes source
 │   ├── request/NearbyRequest        paramètres d'entrée de /proximity, validés
-│   ├── poitiers/                    PoitierResponse + PoitierParkingLine
+│   ├── poitiers/                    PoitiersResponse + PoitiersParkingLine
 │   └── cannes/                      CannesResponse + CannesParkingLine
 ├── exception/
 │   ├── ProviderUnavailableException source injoignable, en erreur ou illisible
@@ -43,7 +43,7 @@ fr.theosykas.parking
 ## Vue d'ensemble d'une requête
 
 ```
-GET /api/parking/proximity?lat=..&lon=..&radiusMetre=..
+GET /api/parking/proximity?lat=..&lon=..&radiusMeters=..
         │
         ▼
 ParkingController          @Valid → NearbyRequest ; rejet en 400 avant tout appel réseau
@@ -60,7 +60,7 @@ ParkingProviderRegistry    getAllProviders() → toutes les villes connues
         │              │
         │  1. HTTP GET (URL injectée, timeout 5 s)
         │  2. statut != 200 → ProviderUnavailableException
-        │  3. Jackson → PoitierResponse / CannesResponse
+        │  3. Jackson → PoitiersResponse / CannesResponse
         │  4. extractLines() → List<? extends ParkingSourceLine>
         │  5. ParkingMapper.toParkingDto() ligne par ligne
         ▼
@@ -111,13 +111,13 @@ source HTTP/JSON. La verrouiller garantit qu'un futur provider ne pourra pas la 
 et, par exemple, oublier le contrôle de statut. C'est un **patron de méthode** : le squelette
 est fixe, les points de variation sont explicites et minimaux.
 
-Conséquence directe : `CannesProvider` fait 38 lignes, `PoitiersProvider` 42, et aucun des
-deux ne contient un seul `try`.
+Conséquence directe : `CannesProvider` et `PoitiersProvider` font 38 lignes chacun, et aucun
+des deux ne contient un seul `try`.
 
 ### Pourquoi le paramètre de type `<R>`
 
 Jackson a besoin d'un type concret pour désérialiser. `R` est le type de l'enveloppe de la
-ville (`PoitierResponse`, `CannesResponse`), et `responseType()` en fournit le `Class<R>` à
+ville (`PoitiersResponse`, `CannesResponse`), et `responseType()` en fournit le `Class<R>` à
 l'exécution. Le compilateur vérifie ensuite que `extractLines(R)` reçoit bien le même type :
 impossible de brancher le `CannesResponse` d'une ville sur l'`extractLines` d'une autre.
 
@@ -125,9 +125,9 @@ impossible de brancher le `CannesResponse` d'une ville sur l'`extractLines` d'un
 
 ```
 1. construire la requête    URL injectée depuis application.yaml, timeout 5 s
-2. envoyer                  HttpClient partagé (bean)
+2. envoyer                  HttpClient partagé (bean), dans fetchResponseBody()
 3. vérifier le statut       != 200 → ProviderUnavailableException
-4. désérialiser             mapper.readValue(body, responseType())
+4. désérialiser             mapper.readValue(fetchResponseBody(), responseType())
 5. extraire                 extractLines(response) → lignes au format de la ville
 6. traduire                 ParkingMapper.toParkingDto() sur chaque ligne
 ```
@@ -183,9 +183,9 @@ Trois méthodes, aucune logique. Tout ce qui est risqué vit un cran au-dessus.
 
 ```java
 public interface ParkingSourceLine {
-    String  getNameOfParking();
-    Integer getEmptySpace();
-    Integer getTotalSpace();
+    String  getParkingName();
+    Integer getEmptySpaces();
+    Integer getTotalSpaces();
     String  getGeoPoint();
 }
 ```
@@ -202,9 +202,9 @@ les getters (générés par Lombok `@Data`) exposent le vocabulaire commun :
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class CannesParkingLine implements ParkingSourceLine {
-    @JsonProperty("name_parking")      private String  NameOfParking;
-    @JsonProperty("Places_disponible") private Integer emptySpace;
-    @JsonProperty("Capacite_max")      private Integer totalSpace;
+    @JsonProperty("name_parking")      private String  parkingName;
+    @JsonProperty("Places_disponible") private Integer emptySpaces;
+    @JsonProperty("Capacite_max")      private Integer totalSpaces;
     @JsonProperty("_geopoint_coord")   private String  geoPoint;
 }
 ```
@@ -228,11 +228,11 @@ il est donc écrit une seule fois et ne bougera plus, quel que soit le nombre de
 ```java
 public ParkingDto toParkingDto(ParkingSourceLine line) {
     ParkingDto parking = new ParkingDto();
-    parking.setName(line.getNameOfParking());
-    parking.setAvailable(line.getEmptySpace());
-    parking.setCapacity(line.getTotalSpace());
-    if (line.getEmptySpace() != null && line.getTotalSpace() != null) {
-        parking.setOccupied(line.getTotalSpace() - line.getEmptySpace());
+    parking.setName(line.getParkingName());
+    parking.setAvailable(line.getEmptySpaces());
+    parking.setCapacity(line.getTotalSpaces());
+    if (line.getEmptySpaces() != null && line.getTotalSpaces() != null) {
+        parking.setOccupied(line.getTotalSpaces() - line.getEmptySpaces());
     }
     applyCoordinates(parking, line);
     return parking;
@@ -249,11 +249,11 @@ sort simplement avec `available: null` et `occupied: null`.
 ```java
 Optional<Coordinates> parseGeoPoint(String geoPoint) {
     if (geoPoint == null)            return Optional.empty();
-    String[] part = geoPoint.split(",");
-    if (part.length != 2)            return Optional.empty();
+    String[] parts = geoPoint.split(",");
+    if (parts.length != 2)           return Optional.empty();
     try {
-        return Optional.of(new Coordinates(Double.parseDouble(part[0].trim()),
-                                           Double.parseDouble(part[1].trim())));
+        return Optional.of(new Coordinates(Double.parseDouble(parts[0].trim()),
+                                           Double.parseDouble(parts[1].trim())));
     } catch (NumberFormatException e) {
         return Optional.empty();
     }
@@ -277,6 +277,10 @@ pas un échec** — la distinction structure toute la gestion d'erreur du projet
 `Coordinates` est un `record` imbriqué : porteur de deux valeurs, sans identité, sans
 comportement. Exactement ce pour quoi les records existent.
 
+`parseGeoPoint` est volontairement laissée en visibilité *package* plutôt que `private` :
+c'est le seul point d'entrée que `ParkingMapperTest` a besoin d'atteindre pour couvrir les
+quatre cas de parsing sans passer par un DTO de ville.
+
 ---
 
 ## Le registry : découverte automatique
@@ -299,7 +303,7 @@ La map est construite une seule fois au démarrage, jamais reconstruite à l'ex�
 
 ```java
 private String normalize(String city) {
-    return city.trim().toLowerCase();
+    return city.trim().toLowerCase(Locale.ROOT);
 }
 ```
 
@@ -308,8 +312,16 @@ Appelée **aux deux moments** : à l'insertion et à la recherche. C'est cette s
 produirait des `404` incompréhensibles — une `HashMap` compare ses clés avec `equals()`, donc
 sensible à la casse.
 
-En cas d'absence, `getProviderCity()` lève `CityNotSupportedException` avec la liste des clés
-connues dans le message : le client sait immédiatement ce qu'il peut demander.
+`toLowerCase(Locale.ROOT)` et non `toLowerCase()` : la surcharge sans argument suit la locale
+de la JVM, et en locale turque `I` devient `ı` — une ville dont le nom contient un `I` ne
+serait plus retrouvée selon la machine qui exécute le serveur.
+
+En cas d'absence, `getProviderForCity()` lève `CityNotSupportedException` avec la liste des
+clés connues dans le message : le client sait immédiatement ce qu'il peut demander.
+
+```
+Ville non prise en charge : lyon. Villes disponibles : [cannes, poitiers]
+```
 
 ---
 
@@ -319,7 +331,7 @@ connues dans le message : le client sait immédiatement ce qu'il peut demander.
 
 ```java
 public List<ParkingDto> getParking(String city) {
-    return registry.getProviderCity(city).retrieveParkings();
+    return registry.getProviderForCity(city).retrieveParkings();
 }
 ```
 
@@ -336,12 +348,12 @@ public List<ParkingDto> getNearby(Double lat, Double lon, Double radiusMeters) {
     return collectAllParkings().stream()
         .filter(p -> p.getLatitude() != null && p.getLongitude() != null)
         .map(p -> {
-            p.setDistanceMetre((double) Math.round(
+            p.setDistanceMeters((double) Math.round(
                 CoordUtils.calculateDistance(lat, lon, p.getLatitude(), p.getLongitude())));
             return p;
         })
-        .filter(p -> p.getDistanceMetre() <= radiusMeters)
-        .sorted(Comparator.comparingDouble(ParkingDto::getDistanceMetre))
+        .filter(p -> p.getDistanceMeters() <= radiusMeters)
+        .sorted(Comparator.comparingDouble(ParkingDto::getDistanceMeters))
         .toList();
 }
 ```
@@ -362,15 +374,15 @@ copier n'apporterait rien ici.
 
 ```java
 private List<ParkingDto> collectAllParkings() {
-    List<ParkingDto> parking = new ArrayList<>();
+    List<ParkingDto> parkings = new ArrayList<>();
     for (ParkingProvider provider : registry.getAllProviders()) {
         try {
-            parking.addAll(provider.retrieveParkings());
+            parkings.addAll(provider.retrieveParkings());
         } catch (ProviderUnavailableException e) {
-            log.warn("Provider {} indisponible, ignore pour cette requete", provider.getCity(), e);
+            log.warn("Provider {} indisponible, ignoré pour cette requête", provider.getCity(), e);
         }
     }
-    return parking;
+    return parkings;
 }
 ```
 
@@ -389,7 +401,8 @@ résilience* dans [USER_DOC.md](USER_DOC.md).
 `CoordUtils` applique une **approximation équirectangulaire** : conversion en radians, écart
 nord-sud et écart est-ouest, correction de ce dernier par le cosinus de la latitude moyenne
 (les méridiens se resserrent vers les pôles), puis Pythagore comme si la zone était plane. Le
-résultat est multiplié par le rayon terrestre (6 371 000 m) pour passer des radians aux mètres.
+résultat est multiplié par le rayon terrestre (`EARTH_RADIUS = 6_371_000` m) pour passer des
+radians aux mètres.
 
 Moins précise que la formule de Haversine sur de longues distances, mais nettement moins
 coûteuse et d'une erreur inférieure à 0,1 % à l'échelle d'une ville — le seul cas d'usage ici.
@@ -398,7 +411,7 @@ Constructeur privé et méthode `static` : c'est une classe utilitaire pure, san
 n'instancie pas.
 
 Le résultat est arrondi au mètre par `Math.round` dans le service, puis reconverti en `double`
-pour tenir dans le champ `distanceMetre` : le JSON sort donc `"distanceMetre": 312.0`.
+pour tenir dans le champ `distanceMeters` : le JSON sort donc `"distanceMeters": 312.0`.
 
 ---
 
@@ -473,13 +486,13 @@ déclarer ou à les gérer. C'est ce qui permet à `getParking()` de tenir en un
 
 | Handler | Déclencheur | Code | Corps |
 |---|---|---|---|
-| `invalidProvider` | `ProviderUnavailableException` | 503 | message de l'exception (nomme la ville) |
-| `invalidCity` | `CityNotSupportedException` | 404 | message + villes prises en charge |
-| `handleBadParam` | `MethodArgumentTypeMismatchException` | 400 | `"Parametres type invalid"` |
+| `handleProviderUnavailable` | `ProviderUnavailableException` | 503 | message de l'exception (nomme la ville) |
+| `handleCityNotSupported` | `CityNotSupportedException` | 404 | message + villes prises en charge |
+| `handleBadParam` | `MethodArgumentTypeMismatchException` | 400 | `"Paramètre de type invalide"` |
 | `handleConstraint` | `ConstraintViolationException` | 400 | `chemin : contrainte`, joints par virgule |
-| `handleMissingParam` | `MissingServletRequestParameterException` | 400 | `"Parametre obligatoire manquant : city"` |
+| `handleMissingParam` | `MissingServletRequestParameterException` | 400 | `"Paramètre obligatoire manquant : city"` |
 | `handleValidation` | `MethodArgumentNotValidException` | 400 | `champ : contrainte`, joints par virgule |
-| `globalException` | `Exception` | 500 | `"Une erreur interne est survenue"` + `log.error` |
+| `handleUnexpected` | `Exception` | 500 | `"Une erreur interne est survenue"` + `log.error` |
 
 Le dernier est le filet de sécurité : il attrape tout ce qui n'a pas été prévu. La stacktrace
 part dans les logs serveur, le client ne reçoit qu'un message générique — un détail
@@ -519,14 +532,14 @@ Deux mécanismes complémentaires :
   de l'objet** (`@NotNull`, `@Min`, `@Max`, `@Positive`).
 
 `NearbyRequest` est un objet lié depuis les paramètres de requête, pas un corps JSON : `lat`,
-`lon` et `radiusMetre` arrivent bien dans l'URL. Le regrouper en objet permet de poser les
+`lon` et `radiusMeters` arrivent bien dans l'URL. Le regrouper en objet permet de poser les
 bornes déclarativement plutôt qu'en `if` dans le controller.
 
 | Champ | Contraintes | Pourquoi |
 |---|---|---|
 | `lat` | `@NotNull @Min(-90) @Max(90)` | domaine de définition d'une latitude |
 | `lon` | `@NotNull @Min(-180) @Max(180)` | domaine de définition d'une longitude |
-| `radiusMetre` | `@NotNull @Positive` | un rayon nul ou négatif n'a pas de sens |
+| `radiusMeters` | `@NotNull @Positive` | un rayon nul ou négatif n'a pas de sens |
 
 Spring rejette la requête **avant** d'entrer dans la méthode : aucun appel réseau n'est
 déclenché pour une requête invalide, et l'appelant reçoit un `400` qui désigne son erreur
@@ -551,14 +564,14 @@ public class ParkingDto {
     private Double  latitude;
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    private Double distanceMetre;
+    private Double distanceMeters;
 }
 ```
 
 **C'est le contrat que le sujet interdit de faire évoluer.** Renommer un champ ici casse
 l'application mobile ; en ajouter un est en revanche sans danger.
 
-`@JsonInclude(NON_NULL)` sur `distanceMetre` seulement : la distance n'a de sens que relative à
+`@JsonInclude(NON_NULL)` sur `distanceMeters` seulement : la distance n'a de sens que relative à
 un point de recherche. Sur `/api/parking?city=…`, elle est absente du JSON plutôt que présente
 à `null` — une distance nulle laisserait penser « à 0 m », ce qui serait faux.
 
@@ -600,26 +613,46 @@ des cas limites, chacun couvrant une branche du code :
 
 ## Tests
 
-| Test | État | Ce qu'il couvre |
+Cinq classes, **12 tests, tous verts**.
+
+| Classe | Tests | Ce qu'elle couvre |
 |---|---|---|
-| `ParkingGatewayApplicationTests.contextLoads` | actif, **passe** | démarrage du contexte Spring : câblage des providers, résolution des `@Value`, construction du registry |
-| `PoitiersProviderTests.invalidServeurRaise` | **entièrement commenté** | — |
+| `ParkingGatewayApplicationTests` | 1 | `contextLoads` : démarrage du contexte Spring — câblage des providers, résolution des `@Value`, construction du registry |
+| `provider/ParkingMapperTest` | 6 | parsing des coordonnées (`geoPointValid`, `geoPointTextual`, `geoPointNull`, `geoPointInvalid`), calcul d'`occupied` (`calculateOccupiedFromCapacityAndAvailable`), et parking conservé sans position (`coordinateInvalid`) |
+| `provider/ParkingProviderTest` | 2 | registry : `shouldThrowExceptionWhenCityIsUnknown`, `shouldFindProviderWhateverTheCase` (casse) |
+| `provider/AbstractProviderTest` | 1 | `unreachableServerThrowsProviderUnavailable` : serveur injoignable → `ProviderUnavailableException` |
+| `utils/CoordUtilsTest` | 2 | `zeroDistanceForIdenticalPoints`, `distanceIsSymmetric` |
 
-Dernier rapport surefire : `Tests run: 1, Failures: 0, Errors: 0, Skipped: 0`.
+Dernier rapport surefire : `Tests run: 12, Failures: 0, Errors: 0, Skipped: 0`.
 
-`PoitiersProviderTests` a été écrit **avant** l'extraction d'`AbstractHttpProvider`. Il
-instancie `new PoitiersProvider(new ObjectMapper(), new ParkingMapper())` — une signature à
-deux arguments qui n'existe plus (le constructeur en prend quatre depuis que le `HttpClient`
-et l'URL sont injectés). Il utilisait aussi `ReflectionTestUtils.setField(provider,
-"providerUrlApi", …)`, qui ne fonctionnerait plus : le champ appartient désormais à la classe
-mère et il est `final`.
+### Les deux `record` de test
 
-La bonne façon de le réécrire n'est pas la réflexion mais l'injection : passer l'URL bidon au
-constructeur, qui l'accepte déjà en quatrième argument. C'est un effet de bord bienvenu du
-refactoring — le code est devenu plus testable en même temps qu'il se factorisait.
+Aucun mock framework n'est utilisé. Deux `record` locaux suffisent à isoler ce qui est testé :
 
-Le plan de reprise, par ordre de rentabilité, est détaillé dans la section « État des tests »
-du [README](../README.md).
+```java
+// ParkingMapperTest — implémente le contrat, sans passer par un DTO de ville
+private record FakeSourceLine(String getParkingName, Integer getEmptySpaces,
+                              Integer getTotalSpaces, String getGeoPoint)
+        implements ParkingSourceLine {}
+
+// ParkingProviderTest — un provider qui ne fait aucun appel réseau
+private record CityMockProvider(String nameCity) implements ParkingProvider {
+    @Override public String getCity() { return nameCity; }
+    @Override public List<ParkingDto> retrieveParkings() { return List.of(); }
+}
+```
+
+C'est la contrepartie directe des interfaces : parce que `ParkingMapper` ne dépend que de
+`ParkingSourceLine` et le registry que de `ParkingProvider`, un `record` de quatre lignes
+remplace un DTO de ville complet ou un serveur HTTP.
+
+`AbstractProviderTest` est le seul test qui touche au réseau, et volontairement : il instancie
+un `PoitiersProvider` pointé sur `http://localhost:4242/nonexistent` et vérifie que la
+mécanique commune traduit bien l'échec de connexion en `ProviderUnavailableException`. Comme
+le test cible la classe **parente** à travers l'une de ses sous-classes, toutes les villes
+héritent de la garantie.
+
+Le reste à couvrir est détaillé dans la section « État des tests » du [README](../README.md).
 
 ---
 
@@ -632,9 +665,9 @@ Trois fichiers, aucune modification de l'existant.
 ```java
 @Data @JsonIgnoreProperties(ignoreUnknown = true)
 public class LyonParkingLine implements ParkingSourceLine {
-    @JsonProperty("<nom réel>") private String  NameOfParking;
-    @JsonProperty("<nom réel>") private Integer emptySpace;
-    @JsonProperty("<nom réel>") private Integer totalSpace;
+    @JsonProperty("<nom réel>") private String  parkingName;
+    @JsonProperty("<nom réel>") private Integer emptySpaces;
+    @JsonProperty("<nom réel>") private Integer totalSpaces;
     @JsonProperty("<nom réel>") private String  geoPoint;
 }
 
@@ -666,21 +699,3 @@ directement `ParkingProvider` sans passer par `AbstractHttpProvider`. Le registr
 la différence : il n'indexe que le contrat.
 
 ---
-
-## Points connus
-
-Relevés à la relecture, sans incidence fonctionnelle, notés pour mémoire :
-
-- `ParkingService` déclare son logger avec `LoggerFactory.getLogger(ParkingProvider.class)` :
-  les `log.warn` de dégradation partielle apparaissent donc sous le nom de catégorie
-  `ParkingProvider` et non `ParkingService`.
-- Le paramètre de `getProximity` s'appelle `requets` (inversion), et `PoitierParkingLine` /
-  `PoitierResponse` sont au singulier alors que le package est `poitiers`.
-- `@RequiredArgsConstructor` sur `GlobalExceptionHandler` ne génère rien : la classe n'a aucun
-  champ `final` à injecter.
-- `CoordUtils` a un constructeur privé mais la classe n'est pas `final` ; son constructeur privé
-  se termine par un `;` superflu.
-- Le `.PHONY` du Makefile déclare `start-serveur`, `clean` et `re`, qui ne correspondent à
-  aucune cible existante.
-- `handleBadParam` reçoit l'exception mais renvoie un message fixe : le nom du paramètre fautif
-  (`e.getName()`) serait plus utile au client.

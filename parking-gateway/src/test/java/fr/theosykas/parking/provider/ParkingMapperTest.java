@@ -21,7 +21,7 @@ public class ParkingMapperTest {
 	}
 
 	@Test
-	void geoPointConvertTextual() {
+	void geoPointTextual() {
 		assertTrue(mapper.parseGeoPoint("coordonnées indisponibles").isEmpty());
 	}
 

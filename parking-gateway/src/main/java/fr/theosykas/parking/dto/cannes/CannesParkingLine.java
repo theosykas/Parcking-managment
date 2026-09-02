@@ -1,7 +1,6 @@
 package fr.theosykas.parking.dto.cannes;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import fr.theosykas.parking.dto.ParkingSourceLine;
 import lombok.Data;
 

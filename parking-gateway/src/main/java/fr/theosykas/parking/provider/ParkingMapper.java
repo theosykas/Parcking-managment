@@ -1,5 +1,4 @@
 package fr.theosykas.parking.provider;
-
 import org.springframework.stereotype.Component;
 import fr.theosykas.parking.dto.ParkingDto;
 import fr.theosykas.parking.dto.ParkingSourceLine;
@@ -35,22 +34,23 @@ public class ParkingMapper {
 			line.getParkingName(), line.getGeoPoint())
 			);
 		}
-	
-		Optional<Coordinates> parseGeoPoint(String geoPoint) {
-			if (geoPoint == null) {
-				return Optional.empty();
-			}
-			String[] part = geoPoint.split(",");
-			if (part.length != 2) {
-				return Optional.empty();
-			}
-			try {
-				return Optional.of(new Coordinates(
-					Double.parseDouble(part[0].trim()),
-					Double.parseDouble(part[1].trim())));
-			}
-			catch (NumberFormatException e) {
-				return Optional.empty();
+
+
+	Optional<Coordinates> parseGeoPoint(String geoPoint) {
+		if (geoPoint == null) {
+			return Optional.empty();
+		}
+		String[] parts = geoPoint.split(",");
+		if (parts.length != 2) {
+			return Optional.empty();
+		}
+		try {
+			return Optional.of(new Coordinates(
+				Double.parseDouble(parts[0].trim()),
+				Double.parseDouble(parts[1].trim())));
+		}
+		catch (NumberFormatException e) {
+			return Optional.empty();
 		}
 	}
 }

@@ -12,7 +12,7 @@
 	<artifactId>parking-gateway</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 		<name>Parking-gateway</name>
-	<description>API REST d'agregation des parkings en temps reel, multi-villes</description>
+	<description>API REST d'agrégation des parkings en temps reel, multi-villes</description>
 	<properties>
 		<java.version>21</java.version>
 	</properties>

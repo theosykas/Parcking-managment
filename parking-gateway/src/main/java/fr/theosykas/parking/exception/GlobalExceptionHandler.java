@@ -1,7 +1,6 @@
 package fr.theosykas.parking.exception;
 import java.util.Map;
 import java.util.stream.Collectors;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -19,12 +18,12 @@ public class GlobalExceptionHandler {
 	private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
 	@ExceptionHandler(ProviderUnavailableException.class)
-	public ResponseEntity<Map<String, String>> invalidProvider(ProviderUnavailableException e) {
+	public ResponseEntity<Map<String, String>> handleProviderUnavailable(ProviderUnavailableException e) {
 		return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(Map.of("error", e.getMessage()));
 	}
 
 	@ExceptionHandler(CityNotSupportedException.class)
-	public ResponseEntity<Map<String, String>> invalidCity(CityNotSupportedException e) {
+	public ResponseEntity<Map<String, String>> handleCityNotSupported(CityNotSupportedException e) {
 		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
 	}
 
@@ -37,11 +36,11 @@ public class GlobalExceptionHandler {
 	// chaîne vide, paramètre @NotBlank
 	@ExceptionHandler(ConstraintViolationException.class)
 	public ResponseEntity<Map<String, String>> handleConstraint(ConstraintViolationException e) {
-		String field = e.getConstraintViolations().stream()
+		String fields = e.getConstraintViolations().stream()
 			.map(v -> v.getPropertyPath() + " : " + v.getMessage())
 			.collect(Collectors.joining(", "));
 		return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-			.body(Map.of("error", field));
+			.body(Map.of("error", fields));
 	}
 
 	@ExceptionHandler(MissingServletRequestParameterException.class)
@@ -52,14 +51,14 @@ public class GlobalExceptionHandler {
 
 	@ExceptionHandler(MethodArgumentNotValidException.class)
 	public ResponseEntity<Map<String, String>> handleValidation(MethodArgumentNotValidException e) {
-    		String field = e.getBindingResult().getFieldErrors().stream()
+    		String fields = e.getBindingResult().getFieldErrors().stream()
             	.map(err -> err.getField() + " : " + err.getDefaultMessage())
         	    .collect(Collectors.joining(", "));
-    	return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", field));
+    	return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", fields));
 	}
 
 	@ExceptionHandler(Exception.class)
-	public ResponseEntity<Map<String, Object>> globalException(Exception e) {
+	public ResponseEntity<Map<String, Object>> handleUnexpected(Exception e) {
 		log.error("Erreur inattendue", e);
 		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", "Une erreur interne est survenue"));
 	}

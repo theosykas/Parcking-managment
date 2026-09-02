@@ -30,4 +30,4 @@ compile:
 run-serveur:
 	$(MVNW) spring-boot:run
 
-.PHONY: all up ps logs stop-serveur start-serveur clean re run test
+.PHONY: all up logs stop-serveur run-serveur down test ps compile install

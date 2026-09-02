@@ -12,7 +12,7 @@ make run-serveur   # API sur le port 8080
 
 ```bash
 curl "localhost:8080/api/parking?city=poitiers"
-curl "localhost:8080/api/parking/proximity?lat=46.5836&lon=0.3348&radiusMetre=1000"
+curl "localhost:8080/api/parking/proximity?lat=46.5836&lon=0.3348&radiusMeters=1000"
 ```
 
 Documentation détaillée : [USER_DOC.md](doc/USER_DOC.md) · [DEV_DOC.md](doc/DEV_DOC.md)
@@ -157,16 +157,19 @@ précise, lui renvoyer une liste vide en `200` serait un mensonge.
 | Classe de Test | Objectif & Comportement vérifié |
 |---|---|
 | `ParkingGatewayApplicationTests` | **Contexte Spring** : Vérifie que l'application démarre et que l'injection des dépendances (providers, registry, config) est valide. |
-| `ParkingMapperTest` | **Logique de transformation (Test Pur)** : Vérifie le parsing des coordonnées géographiques (cas valides, `null`, chaînes non-numériques, format invalide). Valide également le calcul de déduction des places occupées. *Note : Utilise un `record` local (`LigneSource`) pour simuler le contrat de l'interface `ParkingSourceLine` de manière totalement isolée.* |
+| `ParkingMapperTest` | **Logique de transformation (Test Pur)** : Vérifie le parsing des coordonnées géographiques (cas valides, `null`, chaînes non-numériques, format invalide). Valide également le calcul de déduction des places occupées. *Note : Utilise un `record` local (`FakeSourceLine`) pour simuler le contrat de l'interface `ParkingSourceLine` de manière totalement isolée.* |
 | `CoordUtilsTest` | **Logique mathématique (Test Pur)** : Vérifie le calcul de distance géospatiale (distance nulle sur deux points identiques, et symétrie parfaite de la distance aller/retour). |
 | `AbstractProviderTest` | **Résilience réseau** : Vérifie le comportement du parent HTTP abstrait face à une erreur de connexion (URL invalide/serveur injoignable) et s'assure qu'il lève bien une `ProviderUnavailableException` propre pour le contrôleur. |
+| `ParkingProviderTest` | **Routage et normalisation** : Vérifie que le registry lève `CityNotSupportedException` sur une ville inconnue, et qu'il retrouve le bon provider quelle que soit la casse (`Poitiers`, `PoItieRs`, `POITIERS`). *Note : utilise un `record` local (`CityMockProvider`) implémentant `ParkingProvider`, sans aucun appel réseau.* |
+
+Dernier rapport surefire : **`Tests run: 12, Failures: 0, Errors: 0, Skipped: 0`** (5 classes).
 
 ### Pourquoi cette stratégie de test ?
 
 1. **Isolation de la logique métier (`ParkingMapper` / `CoordUtils`) :** Ce sont des tests dits "purs". Ils n'ont besoin d'aucune connexion réseau ni de base de données. Ils s'exécutent en quelques millisecondes et garantissent que le cœur de l'application (le calcul des places et des distances) est infaillible, peu importe ce que renvoient les API.
-2. **Simulation du contrat (Le `record LigneSource`) :** Plutôt que d'instancier un DTO de ville complexe (`PoitiersParkingLine`), le test du mapper utilise un simple `record` implémentant `ParkingSourceLine`. Cela prouve que le mapper dépend uniquement du *contrat* et non de l'implémentation d'une ville spécifique.
+2. **Simulation du contrat (Le `record FakeSourceLine`) :** Plutôt que d'instancier un DTO de ville complexe (`PoitiersParkingLine`), le test du mapper utilise un simple `record` implémentant `ParkingSourceLine`. Cela prouve que le mapper dépend uniquement du *contrat* et non de l'implémentation d'une ville spécifique.
 3. **Réparation du test HTTP (`AbstractProviderTest`) :** Le test désactivé a été réparé en ciblant la classe parente. Cela garantit que **toutes** les villes hériteront de cette gestion d'erreur robuste si leur serveur plante.
-4. **Simulation normalisation des clés et exception handle** verifie que`CityNotSupportedException` est bien levée si on demande une ville inconnue, et verification de la normalisation des clés de recherche
+4. **Simulation normalisation des clés et exception handle (`ParkingProviderTest`) :** vérifie que `CityNotSupportedException` est bien levée si on demande une ville inconnue, et vérifie la normalisation des clés de recherche (`trim` + `toLowerCase(Locale.ROOT)`, appliquée à l'insertion comme à la lecture).
 
 ### Ce qu'il reste à tester (couverture tests)
 
@@ -176,7 +179,7 @@ Avec le temps, voici les derniers éléments qui viendraient clôturer la couver
 
 ---
 
-## Journal trace de mon temps de developpement et de recherche
+## Journal trace de mon temps de développement et de recherche
 
 Concernant le temps passé sur ce problème : j'ai commencé vendredi 16, suite à mon entretien
 avec Sarah. J'ai reçu le test à 16h et j'ai immédiatement pris connaissance du sujet, noté où
@@ -300,8 +303,3 @@ Pour un passage à l'échelle (ex: des milliers d'utilisateurs simultanés sur u
 1. **Worker en arrière-plan (`@Scheduled`) :** Mettre en place un processus métier planifié qui interroge tous les `ParkingProvider` à intervalle régulier (ex: toutes les 2 minutes), de manière asynchrone.
 2. **Stockage (Redis / BDD) :** Sauvegarder l'état consolidé (les `ParkingDto`) dans un datastore ultra-rapide comme **Redis** ou une base de données relationnelle, en y ajoutant systématiquement un champ `lastUpdate`.
 3. **Restitution immédiate :** Le `ParkingController` ne ferait plus aucun appel HTTP vers l'extérieur. Il se contenterait de lire le dernier état connu dans la base de données pour le servir au client.
-
-**Bénéfices d'une telle architecture :**
-*   **Latence nulle :** Le client reçoit ses données quasi-instantanément, quelle que soit la lenteur du serveur de la ville.
-*   **Résilience maximale :** Si l'API de Cannes tombe en panne pendant une heure, l'application mobile affiche toujours les parkings avec les données vieilles d'une heure (accompagnées d'un indicateur visuel de fraîcheur), au lieu d'une liste vide ou d'une erreur.
-*   **Protection des fournisseurs (Rate Limiting) :** Si 10 000 utilisateurs ouvrent l'application simultanément, les serveurs des villes ne reçoivent toujours qu'une seule requête toutes les 2 minutes de notre part. Cela évite le bannissement de notre IP pour abus.

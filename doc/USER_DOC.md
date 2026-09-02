@@ -58,11 +58,15 @@ Started ParkingGatewayApplication in 1.08 seconds
 ### Raccourcis Makefile
 
 ```bash
-make up          # démarre le conteneur Cannes
+make up             # démarre le conteneur Cannes
 make ps             # état du conteneur
 make logs           # logs nginx en direct (utile pour voir les appels arriver)
-make run-serveur    # démarre le serveur
-make down          # arrête et supprime le conteneur
+make stop-serveur   # arrête la source Cannes (sans supprimer le conteneur)
+make down           # arrête et supprime le conteneur
+make run-serveur    # démarre l'API
+make compile        # mvnw clean compile
+make install        # mvnw clean install
+make test           # mvnw test
 ```
 
 ---
@@ -89,21 +93,21 @@ curl "http://localhost:8080/api/parking?city=CANNES"
 ### Les parkings à proximité d'une position
 
 ```
-GET /api/parking/proximity?lat={lat}&lon={lon}&radiusMetre={rayon}
+GET /api/parking/proximity?lat={lat}&lon={lon}&radiusMeters={rayon}
 ```
 
 | Paramètre | Type | Obligatoire | Bornes | Description |
 |---|---|---|---|---|
 | `lat` | décimal | oui | -90 à 90 | latitude du point de recherche |
 | `lon` | décimal | oui | -180 à 180 | longitude du point de recherche |
-| `radiusMetre` | décimal | oui | > 0 | rayon de recherche en mètres |
+| `radiusMeters` | décimal | oui | > 0 | rayon de recherche en mètres |
 
 ```bash
 # Autour de la gare de Poitiers
-curl "http://localhost:8080/api/parking/proximity?lat=46.5836&lon=0.3348&radiusMetre=1000"
+curl "http://localhost:8080/api/parking/proximity?lat=46.5836&lon=0.3348&radiusMeters=1000"
 
 # Autour du Palais des Festivals à Cannes
-curl "http://localhost:8080/api/parking/proximity?lat=43.5510&lon=7.0177&radiusMetre=1000"
+curl "http://localhost:8080/api/parking/proximity?lat=43.5510&lon=7.0177&radiusMeters=1000"
 ```
 
 Les résultats sont triés par distance croissante. Les parkings dont la source ne fournit pas
@@ -124,19 +128,19 @@ Identique quelle que soit la ville interrogée.
     "occupied": 166,
     "latitude": 46.5835835310322,
     "longitude": 0.334834883091724,
-    "distanceMetre.": 3
+    "distanceMeters": 312.0
   }
 ]
 ```
 
 | Champ | Type | Description |
 |---|---|---|
-| `Name` | texte | nom du parking |
-| `avaiable_space` | entier | places libres en temps réel |
+| `name` | texte | nom du parking |
+| `available` | entier | places libres en temps réel |
 | `capacity` | entier | capacité totale |
 | `occupied` | entier | places occupées (`capacity - available`) |
 | `latitude` / `longitude` | décimal | position, `null` si la source ne la fournit pas |
-| `distance_metre` | entier | distance au point demandé, présent uniquement sur `/proximity` |
+| `distanceMeters` | décimal | distance au point demandé en mètres (arrondie), présent uniquement sur `/proximity` |
 
 ---
 
@@ -146,17 +150,17 @@ Identique quelle que soit la ville interrogée.
 |---|---|---|
 | `200` | succès, y compris si aucun parking ne correspond (liste vide) | tableau JSON |
 | `400` | paramètre absent, hors bornes ou mal formé | `{"error": "..."}` |
-| `404` | ville inconnue | `{"error":"city not supported lyon","supported city:":[...]}` |
+| `404` | ville inconnue | `{"error": "Ville non prise en charge : ... Villes disponibles : [...]"}` |
 | `503` | source de données injoignable, en erreur ou illisible | `{"error": "..."}` |
-| `500` | erreur imprévue | `{"error": "Erreur interne"}` |
+| `500` | erreur imprévue | `{"error": "Une erreur interne est survenue"}` |
 
 Exemples :
 
 ```bash
 curl -i "http://localhost:8080/api/parking?city=lyon"
-# 404 — {"error":"Ville non supportée : lyon","supportedCities":["cannes","poitiers"]}
+# 404 — {"error":"Ville non prise en charge : lyon. Villes disponibles : [cannes, poitiers]"}
 
-curl -i "http://localhost:8080/api/parking/proximity?lat=999&lon=0&radiusMetre=100"
+curl -i "http://localhost:8080/api/parking/proximity?lat=999&lon=0&radiusMeters=100"
 # 400 — latitude hors bornes
 ```
 
@@ -170,15 +174,16 @@ trouve dans le rayon demandé.
 Chaque ville est isolée : la panne de l'une n'affecte pas les autres.
 
 ```bash
+make stop-serveur                                          # on coupe la source Cannes
 
 curl -i "http://localhost:8080/api/parking?city=cannes"    # 503, source injoignable
 curl -i "http://localhost:8080/api/parking?city=poitiers"  # 200, toujours opérationnel
 
-make up                                              # la source revient
-```
+curl -i "http://localhost:8080/api/parking/proximity?lat=46.5836&lon=0.3348&radiusMeters=1000"
+# 200 — Poitiers répond, Cannes est simplement absent des résultats (dégradation partielle)
 
-Pour les utiliser, pointer temporairement `parking.provider.cannes.url` sur ces URL dans
-`application.yaml`.
+make up                                                    # la source revient
+```
 
 ---
 
@@ -225,4 +230,4 @@ Spring, pas de l'application : la route demandée n'existe pas. Vérifier le che
 docker compose exec cannes-api ls -l /data
 ```
 
-`cannes.json` doit apparaître comme un fichier avec une taille en octets.
+`Cannes_data.json` doit apparaître comme un fichier avec une taille en octets.

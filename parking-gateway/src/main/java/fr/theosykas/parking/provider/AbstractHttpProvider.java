@@ -1,5 +1,4 @@
 package fr.theosykas.parking.provider;
-
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -41,7 +40,7 @@ public abstract class AbstractHttpProvider<R> implements ParkingProvider {
 	public final List<ParkingDto> retrieveParkings() {
 		R response;
 		try {
-			response = mapper.readValue(fetchBodyResponse(), responseType());
+			response = mapper.readValue(fetchResponseBody(), responseType());
 		}
 		catch (JacksonException e) {
 			throw new ProviderUnavailableException("Réponse illisible du serveur de " + getCity(), e);
@@ -56,7 +55,7 @@ public abstract class AbstractHttpProvider<R> implements ParkingProvider {
 		return finalParkingList;
 	}
 
-	private String fetchBodyResponse() {
+	private String fetchResponseBody() {
 		HttpRequest request = HttpRequest.newBuilder()
 							.uri(URI.create(providerUrlApi))
 							.timeout(REQUEST_TIMEOUT)

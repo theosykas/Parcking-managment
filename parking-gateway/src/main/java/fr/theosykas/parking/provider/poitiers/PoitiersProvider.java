@@ -1,8 +1,7 @@
 package fr.theosykas.parking.provider.poitiers;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import tools.jackson.databind.ObjectMapper; 
+import tools.jackson.databind.ObjectMapper;
 import fr.theosykas.parking.dto.poitiers.PoitiersParkingLine;
 import fr.theosykas.parking.dto.poitiers.PoitiersResponse;
 import java.net.http.HttpClient;
