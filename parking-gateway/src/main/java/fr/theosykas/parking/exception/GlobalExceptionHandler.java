@@ -28,34 +28,34 @@ public class GlobalExceptionHandler {
 		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
 	}
 
-	// Valid Not blank city=abc conversion echec / BAD_REQUEST
+	// Valid Not blank city=abc conversion échec / BAD_REQUEST
 	@ExceptionHandler(MethodArgumentTypeMismatchException.class)
 	public ResponseEntity<Map<String, String>> handleBadParam(MethodArgumentTypeMismatchException e) {
-		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", "Parametres type invalid"));
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", "Paramètre de type invalide"));
 	}
 
-	// chaine vide parametre @NotBlank 
+	// chaîne vide, paramètre @NotBlank
 	@ExceptionHandler(ConstraintViolationException.class)
 	public ResponseEntity<Map<String, String>> handleConstraint(ConstraintViolationException e) {
-		String champs = e.getConstraintViolations().stream()
+		String field = e.getConstraintViolations().stream()
 			.map(v -> v.getPropertyPath() + " : " + v.getMessage())
 			.collect(Collectors.joining(", "));
 		return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-			.body(Map.of("error", champs));
+			.body(Map.of("error", field));
 	}
 
 	@ExceptionHandler(MissingServletRequestParameterException.class)
 	public ResponseEntity<Map<String, String>> handleMissingParam(MissingServletRequestParameterException e) {
 		return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-			.body(Map.of("error", "Parametre obligatoire manquant : " + e.getParameterName()));
+			.body(Map.of("error", "Paramètre obligatoire manquant : " + e.getParameterName()));
 	}
 
 	@ExceptionHandler(MethodArgumentNotValidException.class)
 	public ResponseEntity<Map<String, String>> handleValidation(MethodArgumentNotValidException e) {
-    		String champs = e.getBindingResult().getFieldErrors().stream()
+    		String field = e.getBindingResult().getFieldErrors().stream()
             	.map(err -> err.getField() + " : " + err.getDefaultMessage())
         	    .collect(Collectors.joining(", "));
-    	return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", champs));
+    	return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", field));
 	}
 
 	@ExceptionHandler(Exception.class)

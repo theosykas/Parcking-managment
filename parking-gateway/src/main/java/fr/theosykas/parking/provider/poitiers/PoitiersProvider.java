@@ -10,7 +10,6 @@ import fr.theosykas.parking.provider.ParkingMapper;
 import fr.theosykas.parking.provider.AbstractHttpProvider;
 import java.util.List;
 
-// elle donne donc responseType et extratLine a abstract
 @Component
 public class PoitiersProvider extends AbstractHttpProvider<PoitiersResponse> {
 
@@ -28,13 +27,11 @@ public class PoitiersProvider extends AbstractHttpProvider<PoitiersResponse> {
 		return "Poitiers";
 	}
 
-	// classe cible de la deserialisation : Jackson a besoin du type concret.
 	@Override
 	protected Class<PoitiersResponse> responseType() {
 		return PoitiersResponse.class;
 	}
 
-	// ou trouver les lignes dans la structure JSON de Poitiers. extractLines() retourne des PoitierParkingLine
 	@Override
 	protected List<PoitiersParkingLine> extractLines(PoitiersResponse response) {
 		return response.getResults();

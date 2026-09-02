@@ -9,41 +9,36 @@ import org.junit.jupiter.api.Test;
 
 import fr.theosykas.parking.dto.ParkingDto;
 import fr.theosykas.parking.exception.CityNotSupportedException;
-import lombok.RequiredArgsConstructor;
 
 public class ParkingProviderTest {
 
-	@RequiredArgsConstructor
-	private static class CityMockProvider implements ParkingProvider {
-		private final String nameCity;
+	private record CityMockProvider(String nameCity) implements ParkingProvider {
+			@Override
+			public String getCity() {
+				return nameCity;
+			}
 
-	@Override
-	public String getCity() {
-		return nameCity;
-	}
-
-	@Override
-	public List<ParkingDto> retrieveParkings() {
-		return List.of();
+		@Override
+		public List<ParkingDto> retrieveParkings() {
+			return List.of();
+			}
 		}
-	}
 
 	@Test
 	void shouldThrowExceptionWhenCityIsUnknown() {
 		ParkingProviderRegistry registry = new ParkingProviderRegistry(List.of(new CityMockProvider("Poitiers")));
 		assertThrows(CityNotSupportedException.class, () -> {
-			registry.getProviderCity("Bordeaux");
+			registry.getProviderForCity("Bordeaux");
 		});
 	}
 
 	@Test
-	void AssertNormalizeSearchParametre() {
+	void shouldFindProviderWhateverTheCase() {
 		CityMockProvider cityMockProvider = new CityMockProvider("Poitiers");
 		ParkingProviderRegistry registry = new ParkingProviderRegistry(List.of(cityMockProvider));
 
-		// strictement equal a POitiers mok
-		assertEquals(cityMockProvider, registry.getProviderCity("Poitiers"));
-		assertEquals(cityMockProvider, registry.getProviderCity("poiTiers"));
-		assertEquals(cityMockProvider, registry.getProviderCity("POITIERS"));
+		assertEquals(cityMockProvider, registry.getProviderForCity("Poitiers"));
+		assertEquals(cityMockProvider, registry.getProviderForCity("PoItieRs"));
+		assertEquals(cityMockProvider, registry.getProviderForCity("POITIERS"));
 	}
 }

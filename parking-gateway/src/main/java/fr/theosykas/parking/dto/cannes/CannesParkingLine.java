@@ -7,16 +7,16 @@ import lombok.Data;
 
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class CannesParkingLine implements ParkingSourceLine{
+public class CannesParkingLine implements ParkingSourceLine {
 
 	@JsonProperty("name_parking")
-	private String nameOfParking;
+	private String parkingName;
 
 	@JsonProperty("Places_disponible")
-	private Integer emptySpace;
+	private Integer emptySpaces;
 	
 	@JsonProperty("Capacite_max")
-	private Integer totalSpace;
+	private Integer totalSpaces;
 
 	@JsonProperty("_geopoint_coord")
 	private String geoPoint;

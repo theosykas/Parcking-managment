@@ -158,7 +158,7 @@ précise, lui renvoyer une liste vide en `200` serait un mensonge.
 |---|---|
 | `ParkingGatewayApplicationTests` | **Contexte Spring** : Vérifie que l'application démarre et que l'injection des dépendances (providers, registry, config) est valide. |
 | `ParkingMapperTest` | **Logique de transformation (Test Pur)** : Vérifie le parsing des coordonnées géographiques (cas valides, `null`, chaînes non-numériques, format invalide). Valide également le calcul de déduction des places occupées. *Note : Utilise un `record` local (`LigneSource`) pour simuler le contrat de l'interface `ParkingSourceLine` de manière totalement isolée.* |
-| `CoordUtilsTests` | **Logique mathématique (Test Pur)** : Vérifie le calcul de distance géospatiale (distance nulle sur deux points identiques, et symétrie parfaite de la distance aller/retour). |
+| `CoordUtilsTest` | **Logique mathématique (Test Pur)** : Vérifie le calcul de distance géospatiale (distance nulle sur deux points identiques, et symétrie parfaite de la distance aller/retour). |
 | `AbstractProviderTest` | **Résilience réseau** : Vérifie le comportement du parent HTTP abstrait face à une erreur de connexion (URL invalide/serveur injoignable) et s'assure qu'il lève bien une `ProviderUnavailableException` propre pour le contrôleur. |
 
 ### Pourquoi cette stratégie de test ?

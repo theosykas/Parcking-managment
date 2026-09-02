@@ -7,7 +7,6 @@ import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-// traduit une ligne brut de n'importe quelle ville en parkingDto
 @Component
 public class ParkingMapper {
 	private static final Logger log = LoggerFactory.getLogger(ParkingMapper.class);
@@ -16,11 +15,11 @@ public class ParkingMapper {
 
 	public ParkingDto toParkingDto(ParkingSourceLine line) {
 		ParkingDto parking = new ParkingDto();
-			parking.setName(line.getNameOfParking());
-			parking.setAvailable(line.getEmptySpace());
-			parking.setCapacity(line.getTotalSpace());
-		if (line.getEmptySpace() != null && line.getTotalSpace() != null) {
-				parking.setOccupied(line.getTotalSpace() - line.getEmptySpace());
+			parking.setName(line.getParkingName());
+			parking.setAvailable(line.getEmptySpaces());
+			parking.setCapacity(line.getTotalSpaces());
+		if (line.getEmptySpaces() != null && line.getTotalSpaces() != null) {
+				parking.setOccupied(line.getTotalSpaces() - line.getEmptySpaces());
 		}
 		applyCoordinates(parking, line);
 		return parking;
@@ -28,12 +27,12 @@ public class ParkingMapper {
 
 	private void applyCoordinates(ParkingDto parking, ParkingSourceLine line) {
 		parseGeoPoint(line.getGeoPoint()).ifPresentOrElse(
-			coord -> {
+				coord -> {
 				parking.setLatitude(coord.latitude());
 				parking.setLongitude(coord.longitude());
 			},
-			() -> log.warn("Coordonnees absentes ou illisibles pour le parking {} : {}",
-			line.getNameOfParking(), line.getGeoPoint())
+			() -> log.warn("Coordonnées absentes ou illisibles pour le parking {} : {}",
+			line.getParkingName(), line.getGeoPoint())
 			);
 		}
 	

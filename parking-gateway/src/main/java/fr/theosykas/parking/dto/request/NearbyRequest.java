@@ -18,5 +18,5 @@ public class NearbyRequest {
 	
 	@NotNull
 	@Positive
-	private Double radiusMetre;
+	private Double radiusMeters;
 }
